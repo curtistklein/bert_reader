@@ -2,8 +2,8 @@
 ACPI Bert Table reader script
 
 Based on the ACPI and UEFI specifications:
-https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
-https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
+- https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
+- https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
 
 # Usage
 ```
