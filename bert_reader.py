@@ -82,14 +82,14 @@ def get_bert_table_data(bert_table_data_binary):
         data_entry["revision"] = bert_table_data_binary[20:22].hex()
         data_entry["validation_bits"] = bert_table_data_binary[22:23].hex()
         data_entry["flags"] = bert_table_data_binary[23:24].hex()
-        data_entry["error_data_lenght"] = binary_to_int(bert_table_data_binary, 24)
+        data_entry["error_data_length"] = binary_to_int(bert_table_data_binary, 24)
         data_entry["fru_id"] = bert_table_data_binary[28:44].hex()
         data_entry["fru_text"] = binary_to_string(bert_table_data_binary, 44, 20)
         data_entry["timestamp"] = bert_table_data_binary[64:72].hex()
-        data_entry["generic_error_data"] = binary_to_hex(bert_table_data_binary, 72, data_entry["error_data_lenght"])
+        data_entry["generic_error_data"] = binary_to_hex(bert_table_data_binary, 72, data_entry["error_data_length"])
         bert_table_data["generic_error_data_entry"].append(data_entry)
         # shorten binary data with this generic error data
-        bert_table_data_binary = bert_table_data_binary[72 + data_entry["error_data_lenght"]:]
+        bert_table_data_binary = bert_table_data_binary[72 + data_entry["error_data_length"]:]
     return bert_table_data
 
 def read_bert_table(file):
