@@ -73,7 +73,6 @@ def get_bert_table_data(bert_table_data_binary):
     bert_table_data["error_severity"] = binary_to_int(bert_table_data_binary, 16)
     bert_table_data["generic_error_data_entries"] = binary_to_int(bert_table_data_binary, 16)
     bert_table_data["generic_error_data_entry"] = []
-    bert_table_data["hex"] = binary_to_hex(bert_table_data_binary, 0, bert_table_data["data_lenght"])
     # cut header from binary data
     bert_table_data_binary = bert_table_data_binary[20:]
     for i in range(0,bert_table_data["generic_error_data_entries"]):
