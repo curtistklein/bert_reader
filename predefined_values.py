@@ -29,9 +29,11 @@ section_types = {
     "81212a9609ed499694718d729c8e69ed": {
         "name": "Firmware Error Record Reference",
         "error_record_reference": {
-            "firmware_error_record_type": (0, 1, "byte"),
-            "reserved": (1, 7, "hex"),
-            "record_identifier": (8, 8, "hex")
+            "firmware_error_record_type": (0, 1, "binary_to_byte"),
+            "revision": (1, 1, "binary_to_byte"),
+            "reserved": (1, 7, "binary_to_hex"),
+            "record_identifier": (8, 8, "binary_to_hex"),
+            "record_identifier_GUID_extension": (16, 16, "binary_to_guid")
         }
     },
     "c57539633b844095bf78eddad3f9c9dd": {
@@ -58,4 +60,3 @@ error_severity = [
     "Corrected",
     "Informational"
 ]
-
