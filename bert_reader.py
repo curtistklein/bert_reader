@@ -14,6 +14,7 @@ import argparse
 import os
 import struct
 import uuid
+import sys
 import predefined_values
 
 ############################
@@ -25,11 +26,11 @@ def binary_to_string(binary_data, byte_offset, length):
     """Converts binary data chunk to string"""
     return binary_data[byte_offset:byte_offset + length].decode("utf-8")
 
-def binary_to_int(binary_data, byte_offset):
+def binary_to_int(binary_data, byte_offset, length=4):
     """Converts binary data chunk to integer"""
     return struct.unpack("i", binary_data[byte_offset:byte_offset + 4])[0]
 
-def binary_to_byte(binary_data, byte_offset):
+def binary_to_byte(binary_data, byte_offset, length=1):
     """Converts binary data chunk to byte"""
     return struct.unpack("B", binary_data[byte_offset:byte_offset + 1])[0]
 
@@ -46,66 +47,100 @@ def binary_to_guid(binary_data, byte_offset, length):
 # Table 18-381 Boot Error Record Table (BERT) Table
 def get_bert_table(bert_table_binary):
     """Returns a BERT Table dict from raw binary data"""
-    bert_table = {}
-    bert_table["header_signature"] = binary_to_string(bert_table_binary, 0, 4)
-    bert_table["lenght"] = binary_to_int(bert_table_binary, 4)
-    bert_table["revision"] = binary_to_byte(bert_table_binary, 8)
-    bert_table["checksum"] = binary_to_byte(bert_table_binary, 9)
-    bert_table["oem_id"] = binary_to_string(bert_table_binary, 10, 6)
-    bert_table["oem_revision"] = binary_to_int(bert_table_binary, 24)
-    bert_table["creator_id"] = binary_to_string(bert_table_binary, 28, 4)
-    bert_table["creator_revision"] = binary_to_int(bert_table_binary, 32)
-    bert_table["boot_error_region_length"] = binary_to_int(bert_table_binary, 36)
-    bert_table["boot_error_region"] = binary_to_hex(bert_table_binary, 40, 8)
-    bert_table["hex"] = binary_to_hex(bert_table_binary, 0, 48)
+    bert_table = {
+        "header_signature": binary_to_string(bert_table_binary, 0, 4),
+        "lenght": binary_to_int(bert_table_binary, 4),
+        "revision": binary_to_byte(bert_table_binary, 8),
+        "checksum": binary_to_byte(bert_table_binary, 9),
+        "oem_id": binary_to_string(bert_table_binary, 10, 6),
+        "oem_revision": binary_to_int(bert_table_binary, 24),
+        "creator_id": binary_to_string(bert_table_binary, 28, 4),
+        "creator_revision": binary_to_int(bert_table_binary, 32),
+        "boot_error_region_length": binary_to_int(bert_table_binary, 36),
+        "boot_error_region": binary_to_hex(bert_table_binary, 40, 8),
+        "hex": binary_to_hex(bert_table_binary, 0, 48)
+    }
     return bert_table
 
 # https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
 # Table 18-381 Generic Error Status Block
 # Table 18-382 Generic Error Data Entry
 def get_bert_table_data(bert_table_data_binary):
-    """Returns a BERT Table Data dict from raw binary data"""
-    bert_table_data = {}
-    bert_table_data["block_status"] = bert_table_data_binary[0:4].hex()
-    bert_table_data["raw_data_offset"] = bert_table_data_binary[4:8].hex()
-    bert_table_data["raw_data_lenght"] = bert_table_data_binary[8:12].hex()
-    bert_table_data["data_lenght"] = binary_to_int(bert_table_data_binary, 12)
-    bert_table_data["error_severity"] = binary_to_int(bert_table_data_binary, 16)
-    bert_table_data["generic_error_data_entries"] = binary_to_int(bert_table_data_binary, 16)
-    bert_table_data["generic_error_data_entry"] = []
+    """
+    Returns a BERT Table Data dict from raw binary data.
+    """
+    bert_table_data = {
+        "block_status": bert_table_data_binary[0:4].hex(),
+        "raw_data_offset": bert_table_data_binary[4:8].hex(),
+        "raw_data_lenght": bert_table_data_binary[8:12].hex(),
+        "data_lenght": binary_to_int(bert_table_data_binary, 12),
+        "error_severity": binary_to_int(bert_table_data_binary, 16),
+        "generic_error_data_entries": binary_to_int(
+            bert_table_data_binary, 16),
+        "generic_error_data_entry": []
+    }
     # cut header from binary data
     bert_table_data_binary = bert_table_data_binary[20:]
-    for i in range(0,bert_table_data["generic_error_data_entries"]):
-        data_entry = {}
-        data_entry["section_type"] = binary_to_guid(bert_table_data_binary, 0, 16)
-        data_entry["error_severity"] = binary_to_int(bert_table_data_binary, 16)
-        data_entry["revision"] = bert_table_data_binary[20:22].hex()
-        data_entry["validation_bits"] = bert_table_data_binary[22:23].hex()
-        data_entry["flags"] = bert_table_data_binary[23:24].hex()
-        data_entry["error_data_length"] = binary_to_int(bert_table_data_binary, 24)
-        data_entry["fru_id"] = bert_table_data_binary[28:44].hex()
-        data_entry["fru_text"] = binary_to_string(bert_table_data_binary, 44, 20)
-        data_entry["timestamp"] = bert_table_data_binary[64:72].hex()
-        data_entry["generic_error_data"] = binary_to_hex(bert_table_data_binary, 72, data_entry["error_data_length"])
+    for i in range(0, bert_table_data["generic_error_data_entries"]):
+        data_entry = {
+            "section_type": binary_to_guid(bert_table_data_binary, 0, 16),
+            "error_severity": binary_to_int(bert_table_data_binary, 16),
+            "revision": bert_table_data_binary[20:22].hex(),
+            "validation_bits": bert_table_data_binary[22:23].hex(),
+            "flags": bert_table_data_binary[23:24].hex(),
+            "error_data_length": binary_to_int(bert_table_data_binary, 24),
+            "fru_id": bert_table_data_binary[28:44].hex(),
+            "fru_text": binary_to_string(bert_table_data_binary, 44, 20),
+            "timestamp": bert_table_data_binary[64:72].hex(),
+        }
+        data_entry["generic_error_data"] = binary_to_hex(
+            bert_table_data_binary, 72, data_entry["error_data_length"]
+        )
         bert_table_data["generic_error_data_entry"].append(data_entry)
+        bert_table_data["decoded_data_entry"] = get_bert_table_data_entry(
+            data_entry["section_type"],
+            bert_table_data_binary[72:data_entry["error_data_length"]]
+        )
         # shorten binary data with this generic error data
         bert_table_data_binary = bert_table_data_binary[72 + data_entry["error_data_length"]:]
     return bert_table_data
 
-def read_bert_table(file):
-    """Reads BERT Table and BERT Table Data binary files and returns as a binary object"""
-    try:
-        with open(file, "rb") as f:
-            bert_table_binary = f.read()
-            f.close()
-    except OSError as err:
-        print("OS error: {0}".format(err))
-        return None
+def get_bert_table_data_entry(section_type, data_entry):
+    """
+    Decodes section type and generic error data entry and returns it as a dict.
+    """
+    decoded_data_entry = {}
+    #try:
+    section_type = predefined_values.section_types[section_type]
+    for key, value in section_type["error_record_reference"].items():
+        decoded_data_entry[key] = globals()[value[2]](
+            data_entry, value[0], value[1]
+        )
 
+    #print(decoded_data_entry)
+
+    #except:
+    #    section_type = "Unknown"
+    return decoded_data_entry
+
+def read_bert_table(file):
+    """
+    Reads BERT Table and BERT Table Data binary files and returns as a
+    binary object.
+    """
+    try:
+        with open(file, "rb") as bert_file:
+            bert_table_binary = bert_file.read()
+            bert_file.close()
+    except OSError as err:
+        print(f'OS error: {err}')
+        return None
     return bert_table_binary
 
 def print_bert_table(bert_table, filename):
-    """Prints the BERT Table human readable"""
+    """
+    Prints the BERT Table human readable.
+    """
     print("===========")
     print("BERT Table:")
     print("===========")
@@ -118,7 +153,9 @@ def print_bert_table(bert_table, filename):
     print()
 
 def print_bert_table_data(bert_table_data, filename):
-    """Prints the BERT Table Data human readable"""
+    """
+    Prints the BERT Table Data human readable.
+    """
     print("===========")
     print("BERT Table Data:")
     print("===========")
@@ -129,9 +166,16 @@ def print_bert_table_data(bert_table_data, filename):
         elif key == "error_severity":
             severity = predefined_values.error_severity[int(data)]
             print(key.replace("_", " ").capitalize() + ":", data, "(" + severity + ")")
+        elif key == "decoded_data_entry":
+            print_decoded_data_entries(data)
         else:
+            print(key)
             print(key.replace("_", " ").capitalize() + ":", data)
     print()
+
+def print_decoded_data_entries(decoded_data_entries):
+    for key, value in decoded_data_entries.items():
+        print(key.replace("_", " ").capitalize() + ":", value)
 
 def print_error_data_entries(error_data_entries):
     """Prints the BERT Table Data Entry human readable
@@ -146,11 +190,10 @@ def print_error_data_entries(error_data_entries):
                 print_hex_data(data)
             elif key == "section_type":
                 try:
-                    severity = predefined_values.section_types[data]["name"]
+                    section_type = predefined_values.section_types[data]["name"]
                 except:
-                    severity = "Unknown"
-                print(key.replace("_", " ").capitalize() + ":", data, "(" + severity + ")")
-
+                    section_type = "Unknown"
+                print(key.replace("_", " ").capitalize() + ":", data, "(" + section_type + ")")
             elif key == "error_severity":
                 severity = predefined_values.error_severity[int(data)]
                 print(key.replace("_", " ").capitalize() + ":", data, "(" + severity + ")")
@@ -164,23 +207,35 @@ def print_hex_data(data):
     for line in range(len(hexdata)):
         print(str(line * 16) + ".:\t" + hexdata[line])
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Decodes ACPI BERT tables and BERT Data Table')
-    parser.add_argument('acpi_location', metavar='directory', type=str,
-                    help='acpi tables location')
-    args = parser.parse_args()
+def main(args):
+    """
+    Main function.
+    """
+    # Exit if location is not a valid dir
     if not os.path.isdir(args.acpi_location):
         print("ERROR: Not a valid directory")
         parser.print_help()
-        exit(1)
+        sys.exit(1)
+    # Iterate through BERT Table files
     for i in range(1,3):
         filename = args.acpi_location + "/BERT" + str(i)
         bert_table_binary = read_bert_table(filename)
-        if bert_table_binary: print_bert_table(get_bert_table(bert_table_binary), filename)
-
+        if bert_table_binary:
+            print_bert_table(get_bert_table(bert_table_binary), filename)
+    # Read BERT data file
     filename = args.acpi_location + "/data/BERT"
     bert_table_data_binary = read_bert_table(filename)
-    if bert_table_data_binary: print_bert_table_data(
-            get_bert_table_data(bert_table_data_binary), filename
-    )
+    if bert_table_data_binary:
+        print_bert_table_data(
+            get_bert_table_data(bert_table_data_binary),
+            filename
+        )
 
+if __name__ == "__main__":
+    # Parsing args
+    parser = argparse.ArgumentParser(
+        description='Decodes ACPI BERT tables and BERT Data Table'
+    )
+    parser.add_argument('acpi_location', metavar='directory', type=str,
+                    help='acpi tables location')
+    main(parser.parse_args())
