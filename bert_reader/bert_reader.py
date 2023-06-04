@@ -16,7 +16,7 @@ import glob
 import struct
 import uuid
 import sys
-from tables import Bert, Hest
+from tables import Bert, Hest, GenericErrorStatusBlock
 import predefined_values
 
 def print_table_data(table):
@@ -28,6 +28,22 @@ def print_table_data(table):
     print('===========')
     print(f'Filename: {table.filename}')
     for key, data in table.data.items():
+        if key == 'hex':
+            print_hex_data(data)
+        else:
+            print(key.replace('_', ' ').capitalize() + ':', data)
+    print()
+
+def print_data_entry(name, entry):
+    '''
+    Prints data entry.
+    '''
+    print('-----------')
+    print(f'{name}:')
+    print('-----------')
+    if entry.filename:
+        print(f'Filename: {entry.filename}')
+    for key, data in entry.data.items():
         if key == 'hex':
             print_hex_data(data)
         else:
@@ -177,6 +193,10 @@ def main(args):
     hest_table = Hest(args.acpi_location + '/HEST')
     print_table_data(hest_table)
     # Read BERT data file
+    generic_error_status_block = GenericErrorStatusBlock(
+        os.path.join(args.acpi_location, 'data', 'BERT')
+    )
+    print_data_entry('Generic Error Status Block', generic_error_status_block)
     #filename = args.acpi_location + "/data/BERT"
     #bert_table_data_binary = read_bert_table(filename)
     #if bert_table_data_binary:
