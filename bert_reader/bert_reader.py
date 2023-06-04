@@ -15,51 +15,14 @@ import os
 import struct
 import uuid
 import sys
+from tables import Bert
 import predefined_values
 
-############################
-# Conversion helper funcions
-############################
-
-
-def binary_to_string(binary_data, byte_offset, length):
-    """Converts binary data chunk to string"""
-    return binary_data[byte_offset:byte_offset + length].decode("utf-8")
-
-def binary_to_int(binary_data, byte_offset, length=4):
-    """Converts binary data chunk to integer"""
-    return struct.unpack("i", binary_data[byte_offset:byte_offset + 4])[0]
-
-def binary_to_byte(binary_data, byte_offset, length=1):
-    """Converts binary data chunk to byte"""
-    return struct.unpack("B", binary_data[byte_offset:byte_offset + 1])[0]
-
-def binary_to_hex(binary_data, byte_offset, length):
-    """Converts binary data chunk to hex"""
-    hex_data = binary_data[byte_offset:byte_offset + length].hex()
-    return ' '.join(a+b for a,b in zip(hex_data[::2], hex_data[1::2]))
-
-def binary_to_guid(binary_data, byte_offset, length):
-    """Converts binary data to guid"""
-    return uuid.UUID(bytes=binary_data[byte_offset:byte_offset + length]).bytes_le.hex()
 
 # https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
 # Table 18-381 Boot Error Record Table (BERT) Table
 def get_bert_table(bert_table_binary):
     """Returns a BERT Table dict from raw binary data"""
-    bert_table = {
-        "header_signature": binary_to_string(bert_table_binary, 0, 4),
-        "lenght": binary_to_int(bert_table_binary, 4),
-        "revision": binary_to_byte(bert_table_binary, 8),
-        "checksum": binary_to_byte(bert_table_binary, 9),
-        "oem_id": binary_to_string(bert_table_binary, 10, 6),
-        "oem_revision": binary_to_int(bert_table_binary, 24),
-        "creator_id": binary_to_string(bert_table_binary, 28, 4),
-        "creator_revision": binary_to_int(bert_table_binary, 32),
-        "boot_error_region_length": binary_to_int(bert_table_binary, 36),
-        "boot_error_region": binary_to_hex(bert_table_binary, 40, 8),
-        "hex": binary_to_hex(bert_table_binary, 0, 48)
-    }
     return bert_table
 
 # https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
@@ -221,7 +184,8 @@ def main(args):
         filename = args.acpi_location + "/BERT" + str(i)
         bert_table_binary = read_bert_table(filename)
         if bert_table_binary:
-            print_bert_table(get_bert_table(bert_table_binary), filename)
+            bert_table = Bert(bert_table_binary)
+            print_bert_table(bert_table.data, filename)
     # Read BERT data file
     filename = args.acpi_location + "/data/BERT"
     bert_table_data_binary = read_bert_table(filename)
