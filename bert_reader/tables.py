@@ -96,6 +96,28 @@ class GenericTable:
         for number, line in enumerate(hexdata):
             print(str(number * 16) + '.:\t' + line)
 
+class GenericData(GenericTable):
+    '''
+    Generic Data class.
+    '''
+    name = ''
+
+    def print_data(self):
+        '''
+        Prints data entry.
+        '''
+        print((len(self.name) + 1) * '-')
+        print(f'{self.name}:')
+        print((len(self.name) + 1) * '-')
+        if self.filename != '':
+            print(f'Filename: {self.filename}')
+        for key, data in self.data.items():
+            if key == 'hex':
+                self.print_hex_data(data)
+            else:
+                print(key.replace('_', ' ').capitalize() + ':', data)
+        print()
+
 class Bert(GenericTable):
     '''
     Bert (Boot Error Record Table) class
@@ -162,13 +184,14 @@ class GenericHardwareErrorSourceStructure(GenericTable):
             'hex': self.binary_to_hex(data, 0, len(data))
         }
 
-class GenericErrorStatusBlock(GenericTable):
+class GenericErrorStatusBlock(GenericData):
     '''
     Generic Error Status Block
 
     Section 18.3.2.7.1 in ACPI Specification.
     '''
     def __init__(self, filename):
+        self.name = "Generic Error Status Block"
         self.filename = filename
         data = self.read_table(self.filename)
         self.data = {
@@ -178,9 +201,13 @@ class GenericErrorStatusBlock(GenericTable):
             'data_length': self.binary_to_int(data, 12, 4),
             'error_severity': self.get_severity(data, 16, 4),
         }
-        generic_error_data_entry = GenericErrorDataEntry(data[20:])
-        self.data['generic_error_data_entry'] = generic_error_data_entry.data
+        self.generic_error_data_entry = GenericErrorDataEntry(data[20:])
+        #self.data['generic_error_data_entry'] = generic_error_data_entry.data
         # self.data['hex'] = self.binary_to_hex(data, 0, len(data))
+
+    def print_data(self):
+        super().print_data()
+        self.generic_error_data_entry.print_data()
 
     def get_severity(self, data, start, length=4):
         '''
@@ -196,13 +223,14 @@ class GenericErrorStatusBlock(GenericTable):
             return f'{severity_text[severity]}({severity})'
         return f'unknown({severity})'
 
-class GenericErrorDataEntry(GenericTable):
+class GenericErrorDataEntry(GenericData):
     '''
     Generic Error Data Entry class
 
     Section 18.3.2.7.1 in ACPI Specification.
     '''
     def __init__(self, data):
+        self.name = "Generic Error Data Entry"
         self.data = {
             "section_type": self.binary_to_guid(data, 0, 16),
             "error_severity": self.binary_to_int(data, 16),

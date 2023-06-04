@@ -20,22 +20,6 @@ from tables import Bert, Hest, GenericErrorStatusBlock
 import predefined_values
 
 
-def print_data_entry(name, entry):
-    '''
-    Prints data entry.
-    '''
-    print('-----------')
-    print(f'{name}:')
-    print('-----------')
-    if entry.filename:
-        print(f'Filename: {entry.filename}')
-    for key, data in entry.data.items():
-        if key == 'hex':
-            print_hex_data(data)
-        else:
-            print(key.replace('_', ' ').capitalize() + ':', data)
-    print()
-
 
 # https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
 # Table 18-381 Generic Error Status Block
@@ -135,7 +119,7 @@ def main(args):
     generic_error_status_block = GenericErrorStatusBlock(
         os.path.join(args.acpi_location, 'data', 'BERT')
     )
-    print_data_entry('Generic Error Status Block', generic_error_status_block)
+    generic_error_status_block.print_data()
     #filename = args.acpi_location + "/data/BERT"
     #bert_table_data_binary = read_bert_table(filename)
     #if bert_table_data_binary:
