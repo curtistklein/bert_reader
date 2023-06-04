@@ -136,3 +136,35 @@ class GenericHardwareErrorSourceStructure(GenericTable):
             'error_status_block_length': self.binary_to_hex(data, 60, 4),
             'hex': self.binary_to_hex(data, 0, len(data))
         }
+
+class GenericErrorStatusBlock(GenericTable):
+    '''
+    Generic Error Status Block
+
+    Section 18.3.2.7.1 in ACPI Specification.
+    '''
+    def __init__(self, filename):
+        self.filename = filename
+        data = self.read_table(self.filename)
+        self.data = {
+            'block_status': data[0:4].hex(),
+            'raw_data_offset': self.binary_to_hex(data, 4, 4),
+            'raw_data_length': self.binary_to_int(data, 8, 4),
+            'data_length': self.binary_to_int(data, 12, 4),
+            'error_severity': self.get_severity(data, 16, 4),
+            'hex': self.binary_to_hex(data, 0, len(data))
+        }
+
+    def get_severity(self, data, start, length=4):
+        '''
+        Get error severity from data.
+        '''
+        severity = self.binary_to_int(data, start, length)
+        severity_text = [
+            'Recoverable',
+            'Fatal',
+            'Correctable',
+            'None']
+        if severity < len(severity_text):
+            return f'{severity_text[severity]}({severity})'
+        return f'unknown({severity})'
