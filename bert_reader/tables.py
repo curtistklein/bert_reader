@@ -16,6 +16,7 @@ class GenericTable:
     Generic Table class
     '''
     data = {}
+    filename = ''
 
     def binary_to_string(self, binary_data, byte_offset, length):
         '''
@@ -70,6 +71,30 @@ class GenericTable:
         with open(filename, "rb") as file:
             binary_data = file.read()
         return binary_data
+
+    def print_data(self):
+        '''
+        Prints table data.
+        '''
+        print('===========')
+        print(f'''{self.data['header_signature']} Table:''')
+        print('===========')
+        print(f'Filename: {self.filename}')
+        for key, data in self.data.items():
+            if key == 'hex':
+                self.print_hex_data(data)
+            else:
+                print(key.replace('_', ' ').capitalize() + ':', data)
+        print()
+
+    def print_hex_data(self, data):
+        '''
+        Prints hex data fromatted in columns and rows.
+        '''
+        print('HEX data:')
+        hexdata = [data[i:i+48] for i in range(0, len(data), 48)]
+        for number, line in enumerate(hexdata):
+            print(str(number * 16) + '.:\t' + line)
 
 class Bert(GenericTable):
     '''

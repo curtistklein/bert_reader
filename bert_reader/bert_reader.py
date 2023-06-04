@@ -19,20 +19,6 @@ import sys
 from tables import Bert, Hest, GenericErrorStatusBlock
 import predefined_values
 
-def print_table_data(table):
-    '''
-    Prints table data.
-    '''
-    print('===========')
-    print(f'''{table.data['header_signature']} Table:''')
-    print('===========')
-    print(f'Filename: {table.filename}')
-    for key, data in table.data.items():
-        if key == 'hex':
-            print_hex_data(data)
-        else:
-            print(key.replace('_', ' ').capitalize() + ':', data)
-    print()
 
 def print_data_entry(name, entry):
     '''
@@ -50,14 +36,6 @@ def print_data_entry(name, entry):
             print(key.replace('_', ' ').capitalize() + ':', data)
     print()
 
-def print_hex_data(data):
-    '''
-    Prints hex data fromatted in columns and rows.
-    '''
-    print('HEX data:')
-    hexdata = [data[i:i+48] for i in range(0, len(data), 48)]
-    for number, line in enumerate(hexdata):
-        print(str(number * 16) + '.:\t' + line)
 
 # https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
 # Table 18-381 Generic Error Status Block
@@ -145,14 +123,14 @@ def main(args):
         # Iterate through BERT Table files
         for bert_file in bert_files:
             bert_table = Bert(bert_file)
-            print_table_data(bert_table)
+            bert_table.print_data()
     else:
         print(f'ERROR: No BERT file in {args.acpi_location}')
         parser.print_help()
         sys.exit(1)
     # Read HEST file
     hest_table = Hest(args.acpi_location + '/HEST')
-    print_table_data(hest_table)
+    hest_table.print_data()
     # Read BERT data file
     generic_error_status_block = GenericErrorStatusBlock(
         os.path.join(args.acpi_location, 'data', 'BERT')
