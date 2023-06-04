@@ -102,45 +102,6 @@ def get_bert_table_data(bert_table_data_binary):
         bert_table_data_binary = bert_table_data_binary[72 + data_entry["error_data_length"]:]
     return bert_table_data
 
-def get_bert_table_data_entry(section_type, data_entry):
-    """
-    Decodes section type and generic error data entry and returns it as a dict.
-    """
-    decoded_data_entry = {}
-    #try:
-    section_type = predefined_values.section_types[section_type]
-    for key, value in section_type["error_record_reference"].items():
-        decoded_data_entry[key] = globals()[value[2]](
-            data_entry, value[0], value[1]
-        )
-
-    #print(decoded_data_entry)
-
-    #except:
-    #    section_type = "Unknown"
-    return decoded_data_entry
-
-def print_bert_table_data(bert_table_data, filename):
-    """
-    Prints the BERT Table Data human readable.
-    """
-    print("===========")
-    print("BERT Table Data:")
-    print("===========")
-    print("Filename:", filename)
-    for key, data in bert_table_data.items():
-        if key == "generic_error_data_entry":
-            print_error_data_entries(data)
-        elif key == "error_severity":
-            severity = predefined_values.error_severity[int(data)]
-            print(key.replace("_", " ").capitalize() + ":", data, "(" + severity + ")")
-        elif key == "decoded_data_entry":
-            print_decoded_data_entries(data)
-        else:
-            print(key)
-            print(key.replace("_", " ").capitalize() + ":", data)
-    print()
-
 def print_decoded_data_entries(decoded_data_entries):
     for key, value in decoded_data_entries.items():
         print(key.replace("_", " ").capitalize() + ":", value)
