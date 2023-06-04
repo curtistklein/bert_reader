@@ -5,11 +5,6 @@ Table definitions
 import struct
 import uuid
 
-############################
-# Conversion helper funcions
-############################
-
-
 
 class GenericTable:
     '''
@@ -202,7 +197,6 @@ class GenericErrorStatusBlock(GenericData):
             'error_severity': self.get_severity(data, 16, 4),
         }
         self.generic_error_data_entry = GenericErrorDataEntry(data[20:])
-        #self.data['generic_error_data_entry'] = generic_error_data_entry.data
         # self.data['hex'] = self.binary_to_hex(data, 0, len(data))
 
     def print_data(self):
