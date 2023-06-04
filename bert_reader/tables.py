@@ -152,8 +152,10 @@ class GenericErrorStatusBlock(GenericTable):
             'raw_data_length': self.binary_to_int(data, 8, 4),
             'data_length': self.binary_to_int(data, 12, 4),
             'error_severity': self.get_severity(data, 16, 4),
-            'hex': self.binary_to_hex(data, 0, len(data))
         }
+        generic_error_data_entry = GenericErrorDataEntry(data[20:])
+        self.data['generic_error_data_entry'] = generic_error_data_entry.data
+        # self.data['hex'] = self.binary_to_hex(data, 0, len(data))
 
     def get_severity(self, data, start, length=4):
         '''
@@ -168,3 +170,22 @@ class GenericErrorStatusBlock(GenericTable):
         if severity < len(severity_text):
             return f'{severity_text[severity]}({severity})'
         return f'unknown({severity})'
+
+class GenericErrorDataEntry(GenericTable):
+    '''
+    Generic Error Data Entry class
+
+    Section 18.3.2.7.1 in ACPI Specification.
+    '''
+    def __init__(self, data):
+        self.data = {
+            "section_type": self.binary_to_guid(data, 0, 16),
+            "error_severity": self.binary_to_int(data, 16),
+            "revision": data[20:22].hex(),
+            "validation_bits": data[22:23].hex(),
+            "flags": data[23:24].hex(),
+            "error_data_length": self.binary_to_int(data, 24),
+            "fru_id": data[28:44].hex(),
+            "fru_text": self.binary_to_string(data, 44, 20),
+            "timestamp": data[64:72].hex(),
+        }
