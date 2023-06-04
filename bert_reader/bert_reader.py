@@ -19,12 +19,29 @@ import sys
 from tables import Bert
 import predefined_values
 
+def print_table_data(table):
+    '''
+    Prints table data.
+    '''
+    print('===========')
+    print(f'''{table.data['header_signature']} Table:''')
+    print('===========')
+    print(f'Filename: {table.filename}')
+    for key, data in table.data.items():
+        if key == 'hex':
+            print_hex_data(data)
+        else:
+            print(key.replace('_', ' ').capitalize() + ':', data)
+    print()
 
-# https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
-# Table 18-381 Boot Error Record Table (BERT) Table
-def get_bert_table(bert_table_binary):
-    """Returns a BERT Table dict from raw binary data"""
-    return bert_table
+def print_hex_data(data):
+    '''
+    Prints hex data fromatted in columns and rows.
+    '''
+    print('HEX data:')
+    hexdata = [data[i:i+48] for i in range(0, len(data), 48)]
+    for line in range(len(hexdata)):
+        print(str(line * 16) + ".:\t" + hexdata[line])
 
 # https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
 # Table 18-381 Generic Error Status Block
@@ -87,21 +104,6 @@ def get_bert_table_data_entry(section_type, data_entry):
     #    section_type = "Unknown"
     return decoded_data_entry
 
-def print_bert_table(bert_table, filename):
-    """
-    Prints the BERT Table human readable.
-    """
-    print("===========")
-    print("BERT Table:")
-    print("===========")
-    print("Filename:", filename)
-    for key, data in bert_table.items():
-        if key == "hex":
-            print_hex_data(data)
-        else:
-            print(key.replace("_", " ").capitalize() + ":", data)
-    print()
-
 def print_bert_table_data(bert_table_data, filename):
     """
     Prints the BERT Table Data human readable.
@@ -150,12 +152,6 @@ def print_error_data_entries(error_data_entries):
             else:
                 print(key.replace("_", " ").capitalize() + ":", data)
 
-def print_hex_data(data):
-    """Print hex data fromatted in columns and rows"""
-    print("HEX data:")
-    hexdata = [data[i:i+48] for i in range(0, len(data), 48)]
-    for line in range(len(hexdata)):
-        print(str(line * 16) + ".:\t" + hexdata[line])
 
 def main(args):
     '''
@@ -172,19 +168,19 @@ def main(args):
         # Iterate through BERT Table files
         for bert_file in bert_files:
             bert_table = Bert(bert_file)
-            print_bert_table(bert_table.data, bert_file)
+            print_table_data(bert_table)
     else:
         print(f'ERROR: No BERT file in {args.acpi_location}')
         parser.print_help()
         sys.exit(1)
     # Read BERT data file
-    filename = args.acpi_location + "/data/BERT"
-    bert_table_data_binary = read_bert_table(filename)
-    if bert_table_data_binary:
-        print_bert_table_data(
-            get_bert_table_data(bert_table_data_binary),
-            filename
-        )
+    #filename = args.acpi_location + "/data/BERT"
+    #bert_table_data_binary = read_bert_table(filename)
+    #if bert_table_data_binary:
+    #    print_bert_table_data(
+    #        get_bert_table_data(bert_table_data_binary),
+    #        filename
+    #    )
 
 if __name__ == "__main__":
     # Parsing args
