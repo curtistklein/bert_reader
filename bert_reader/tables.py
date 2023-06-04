@@ -76,7 +76,8 @@ class Bert(GenericTable):
     Bert (Boot Error Record Table) class
     '''
     def __init__(self, filename):
-        data = self.read_table(filename)
+        self.filename = filename
+        data = self.read_table(self.filename)
         self.data = {
             'header_signature': self.binary_to_string(data, 0, 4),
             'lenght': self.binary_to_int(data, 4),
