@@ -87,20 +87,6 @@ def get_bert_table_data_entry(section_type, data_entry):
     #    section_type = "Unknown"
     return decoded_data_entry
 
-def read_bert_table(file):
-    """
-    Reads BERT Table and BERT Table Data binary files and returns as a
-    binary object.
-    """
-    try:
-        with open(file, "rb") as bert_file:
-            bert_table_binary = bert_file.read()
-            bert_file.close()
-    except OSError as err:
-        print(f'OS error: {err}')
-        return None
-    return bert_table_binary
-
 def print_bert_table(bert_table, filename):
     """
     Prints the BERT Table human readable.
@@ -185,10 +171,8 @@ def main(args):
     if len(bert_files) > 0:
         # Iterate through BERT Table files
         for bert_file in bert_files:
-            bert_table_binary = read_bert_table(bert_file)
-            if bert_table_binary:
-                bert_table = Bert(bert_table_binary)
-                print_bert_table(bert_table.data, bert_file)
+            bert_table = Bert(bert_file)
+            print_bert_table(bert_table.data, bert_file)
     else:
         print(f'ERROR: No BERT file in {args.acpi_location}')
         parser.print_help()

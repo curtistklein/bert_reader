@@ -63,12 +63,20 @@ class GenericTable:
                 f'Wrong header signature: {self.data["header_signature"]}'
             )
 
+    def read_table(self, filename):
+        '''
+        Reads data tabe file and returns as a binary data.
+        '''
+        with open(filename, "rb") as file:
+            binary_data = file.read()
+        return binary_data
 
 class Bert(GenericTable):
     '''
     Bert (Boot Error Record Table) class
     '''
-    def __init__(self, data):
+    def __init__(self, filename):
+        data = self.read_table(filename)
         self.data = {
             'header_signature': self.binary_to_string(data, 0, 4),
             'lenght': self.binary_to_int(data, 4),
