@@ -12,6 +12,7 @@
 
 import argparse
 import os
+import glob
 import struct
 import uuid
 import sys
@@ -171,21 +172,27 @@ def print_hex_data(data):
         print(str(line * 16) + ".:\t" + hexdata[line])
 
 def main(args):
-    """
+    '''
     Main function.
-    """
+    '''
     # Exit if location is not a valid dir
     if not os.path.isdir(args.acpi_location):
-        print("ERROR: Not a valid directory")
+        print('ERROR: Not a valid directory')
         parser.print_help()
         sys.exit(1)
-    # Iterate through BERT Table files
-    for i in range(1,3):
-        filename = args.acpi_location + "/BERT" + str(i)
-        bert_table_binary = read_bert_table(filename)
-        if bert_table_binary:
-            bert_table = Bert(bert_table_binary)
-            print_bert_table(bert_table.data, filename)
+    # Find all BERT files
+    bert_files = glob.glob(args.acpi_location + '/BERT*')
+    if len(bert_files) > 0:
+        # Iterate through BERT Table files
+        for bert_file in bert_files:
+            bert_table_binary = read_bert_table(bert_file)
+            if bert_table_binary:
+                bert_table = Bert(bert_table_binary)
+                print_bert_table(bert_table.data, bert_file)
+    else:
+        print(f'ERROR: No BERT file in {args.acpi_location}')
+        parser.print_help()
+        sys.exit(1)
     # Read BERT data file
     filename = args.acpi_location + "/data/BERT"
     bert_table_data_binary = read_bert_table(filename)
