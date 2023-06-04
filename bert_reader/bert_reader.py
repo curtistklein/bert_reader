@@ -16,7 +16,7 @@ import glob
 import struct
 import uuid
 import sys
-from tables import Bert
+from tables import Bert, Hest
 import predefined_values
 
 def print_table_data(table):
@@ -40,8 +40,8 @@ def print_hex_data(data):
     '''
     print('HEX data:')
     hexdata = [data[i:i+48] for i in range(0, len(data), 48)]
-    for line in range(len(hexdata)):
-        print(str(line * 16) + ".:\t" + hexdata[line])
+    for number, line in enumerate(hexdata):
+        print(str(number * 16) + '.:\t' + line)
 
 # https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
 # Table 18-381 Generic Error Status Block
@@ -173,6 +173,9 @@ def main(args):
         print(f'ERROR: No BERT file in {args.acpi_location}')
         parser.print_help()
         sys.exit(1)
+    # Read HEST file
+    hest_table = Hest(args.acpi_location + '/HEST')
+    print_table_data(hest_table)
     # Read BERT data file
     #filename = args.acpi_location + "/data/BERT"
     #bert_table_data_binary = read_bert_table(filename)
