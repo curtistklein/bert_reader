@@ -225,8 +225,16 @@ class GenericErrorDataEntry(GenericData):
     '''
     def __init__(self, data):
         self.name = "Generic Error Data Entry"
+        section_type_guid = self.binary_to_guid(data, 0, 16)
+        section = section_types.get(
+            section_type_guid,
+            {
+                'name': 'Unknown',
+                'class': None
+            }
+        )
         self.data = {
-            "section_type": self.binary_to_guid(data, 0, 16),
+            "section_type": f'''{section['name']} ({section_type_guid})''',
             "error_severity": self.binary_to_int(data, 16),
             "revision": data[20:22].hex(),
             "validation_bits": data[22:23].hex(),
@@ -236,3 +244,83 @@ class GenericErrorDataEntry(GenericData):
             "fru_text": self.binary_to_string(data, 44, 20),
             "timestamp": data[64:72].hex(),
         }
+        self.error_record = section['class'](data[72:])
+        self.data['hex'] = self.binary_to_hex(data, 0, len(data))
+
+    def print_data(self):
+        super().print_data()
+        self.error_record.print_data()
+
+class CommonPlatformErrorRecord(GenericData):
+    '''
+    Common Platform Error Record class.
+
+    Appendix N in UEFI Specification.
+    '''
+
+class FirmwareErrorRecordReference(CommonPlatformErrorRecord):
+    '''
+    Firmware Error Record Reference  class.
+
+    Appendix N.2.10 in UEFI Specification
+    '''
+    def __init__(self, data):
+        self.name = 'Firmware Error Record Reference'
+        self.data = {
+            'firmware_error_record_type': self.binary_to_byte(data, 0, 1),
+            'revision': self.binary_to_byte(data, 1, 1),
+            'reserved': self.binary_to_hex(data, 2, 6),
+            'record_identifier': self.binary_to_hex(data, 8, 8),
+            'record_identifier_GUID_extension': self.binary_to_guid(
+                data, 16, 16
+            ),
+            'hex': self.binary_to_hex(data, 32, len(data) - 32)
+        }
+
+section_types = {
+    "9876ccad47b44bdbb65e16f193c4f3db": {
+        "name": "Processor Generic",
+        "error_record_reference": {}
+    },
+    "dc3ea0b0a1444797b95b53fa242b6e1d": {
+        "name": "Processor Specific - IA32/X64",
+        "error_record_reference": {}
+    },
+    "e429faf13cb711d4bca70080c73c8881": {
+        "name": "Processor Specific - IPF",
+        "error_record_reference": {}
+    },
+    "e19e3d16bc1111e49caac2051d5d46b0": {
+        "name": "Processor Specific - ARM",
+        "error_record_reference": {}
+    },
+    "a5bc11146f644edeb8633e83ed7c83b1": {
+        "name": "Platform Memory",
+        "error_record_reference": {}
+    },
+    "d995e954bbc1430fad91b44dcb3c6f35": {
+        "name": "PCIe",
+        "error_record_reference": {}
+    },
+    "81212a9609ed499694718d729c8e69ed": {
+        "name": "Firmware Error Record Reference",
+        'class': FirmwareErrorRecordReference,
+        "error_record_reference": {}
+    },
+    "c57539633b844095bf78eddad3f9c9dd": {
+        "name": "PCI/PCI-X Bus",
+        "error_record_reference": {}
+    },
+    "eb5e4685ca664769b6a226068b001326": {
+        "name": "DMAr Generic",
+        "error_record_reference": {}
+    },
+    "71761d3732b245cda7d0b0fedd93e8cf": {
+        "name": "Intel® VT for Directed I/O specific DMAr section",
+        "error_record_reference": {}
+    },
+    "036f84e17f37428ca79e575fdfaa84ec": {
+        "name": "IOMMU specific DMAr section",
+        "error_record_reference": {}
+    }
+}
