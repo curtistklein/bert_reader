@@ -122,7 +122,7 @@ class Bert(GenericTable):
         data = self.read_table(self.filename)
         self.data = {
             'header_signature': self.binary_to_string(data, 0, 4),
-            'lenght': self.binary_to_int(data, 4),
+            'length': self.binary_to_int(data, 4),
             'revision': self.binary_to_byte(data, 8),
             'checksum': self.binary_to_byte(data, 9),
             'oem_id': self.binary_to_string(data, 10, 6),
@@ -143,7 +143,7 @@ class Hest(GenericTable):
         data = self.read_table(self.filename)
         self.data = {
             'header_signature': self.binary_to_string(data, 0, 4),
-            'lenght': self.binary_to_int(data, 4),
+            'length': self.binary_to_int(data, 4),
             'revision': self.binary_to_byte(data, 8),
             'checksum': self.binary_to_byte(data, 9),
             'oem_id': self.binary_to_string(data, 10, 6),
