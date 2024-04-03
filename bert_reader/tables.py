@@ -244,12 +244,16 @@ class GenericErrorDataEntry(GenericData):
             "fru_text": self.binary_to_string(data, 44, 20),
             "timestamp": data[64:72].hex(),
         }
-        self.error_record = section['class'](data[72:])
+        if section['class']:
+            self.error_record = section['class'](data[72:])
+        else:
+            self.error_record = None
         self.data['hex'] = self.binary_to_hex(data, 0, len(data))
 
     def print_data(self):
         super().print_data()
-        self.error_record.print_data()
+        if self.error_record:
+            self.error_record.print_data()
 
 class CommonPlatformErrorRecord(GenericData):
     '''
